@@ -8,8 +8,8 @@
 import Foundation
 import PrettyTree
 
-fileprivate let sourceCode: String = """
-<layout>
+fileprivate let sourceCode1: String = """
+<layout col="2 1">
     <note>
         # Hello World!
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec tristique, nisi
@@ -19,13 +19,25 @@ fileprivate let sourceCode: String = """
         # Hello World!
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec tristique, nisi
         et imperdiet commodo, lectus urna ultricies sapien, non facilisis eros mauris.
+        $$\\frac{x}{y}$$
+        $$
+        \\begin{equation}
+        z &= \\frac{x}{y}
+        \\end{equation}
+        $$
     </note>
 </layout>
 """
+fileprivate let sourceCode2: String = """
+\\begin{equation}
+z &= \\frac{x}{y}
+\\end{equation}
+"""
+
 
 fileprivate func dev() {
     let parser = Syntax.parser(environment: .default)
-    let output = Parser.execute(parser: parser, source: sourceCode)
+    let output = Parser.execute(parser: parser, source: sourceCode1)
     print("DONE")
     if let value = output.value {
         print("Success")
@@ -35,6 +47,9 @@ fileprivate func dev() {
     }
     print("UNPARSED")
     print(output.stream.subsequence.debugDescription)
+//    Dev.main()
+//    Latex.main()
+    
 //    let prettyTree1 = PrettyTree(name: "Alpha", children: [
 //        .init(name: "Section 1", children: [
 //            .init("One"),

@@ -22,13 +22,21 @@ extension Syntax: ToPrettyTree {
         case .plainText(let x): return PrettyTree("\(x.subsequence.debugDescription.truncate(limit: 50)) ﹕ PlainText")
         case .element(let x): return x.prettyTree
         case .markdown(let x): return x.prettyTree
+        case .latex(let start, let content, let end):
+            let contents = [
+                [PrettyTree("\(start.subsequence)")],
+                content.map({$0.prettyTree}),
+                [PrettyTree("\(end.subsequence)")],
+            ]
+            return .fragment(contents.flatMap({$0}).flatMap({$0.defragment()}))
         }
     }
 }
 
 extension Syntax.Element.StartTag: ToPrettyTree {
     var prettyTree: PrettyTree {
-        PrettyTree("<\(tagName.subsequence)> ﹕ StartTag")
+        let attributes = attributes.isEmpty ? "" : " \(attributes.map{$0.asString}.joined(separator: " "))"
+        return PrettyTree("<\(tagName.subsequence)\(attributes)> ﹕ StartTag")
     }
 }
 extension Syntax.Element.EndTag: ToPrettyTree {
@@ -38,7 +46,25 @@ extension Syntax.Element.EndTag: ToPrettyTree {
 }
 extension Syntax.Element.VoidTag: ToPrettyTree {
     var prettyTree: PrettyTree {
-        PrettyTree("<\(tagName.subsequence)/> ﹕ VoidTag")
+        let attributes = attributes.isEmpty ? "" : " \(attributes.map{$0.asString}.joined(separator: " "))"
+        return PrettyTree("<\(tagName.subsequence)\(attributes)/> ﹕ VoidTag")
+    }
+}
+extension Syntax.Element.AttributeItem: ToPrettyTree {
+    var prettyTree: PrettyTree {
+        PrettyTree(self.content.subsequence.debugDescription)
+    }
+}
+extension Syntax.Element.Attribute: ToPrettyTree {
+    var prettyTree: PrettyTree {
+        PrettyTree(name: "Attribute", children: [
+            self.key.prettyTree,
+            self.eq.prettyTree,
+            self.value.prettyTree,
+        ])
+    }
+    var asString: String {
+        "\(self.key.content.subsequence.debugDescription)=\(self.value.content.subsequence.debugDescription)"
     }
 }
 extension Syntax.Element: ToPrettyTree {
@@ -46,13 +72,12 @@ extension Syntax.Element: ToPrettyTree {
         switch self {
         case .single(void: let x): return x.prettyTree
         case .pair(start: let start, children: let children, end: let end):
-            let branch = PrettyTree(name: "\(self.tag) ﹕ Element", children: [
-                start.prettyTree,
-                PrettyTree.fragment(children.map {$0.prettyTree}),
-                end.prettyTree,
-            ])
-//            return PrettyTree.refragment(list: branch.defragment())
-            return branch
+            let values = [
+                [start.prettyTree],
+                children.map {$0.prettyTree},
+                [end.prettyTree],
+            ]
+            return PrettyTree.fragment(values.flatMap({$0}))
         }
     }
 }
@@ -73,8 +98,7 @@ extension Syntax.Markdown.Header: ToPrettyTree {
             self.hash.prettyTree,
             PrettyTree.fragment(self.content.map {$0.prettyTree}),
         ])
-//        return PrettyTree.refragment(list: node.defragment())
-        return node
+        return PrettyTree.refragment(list: node.defragment())
     }
 }
 extension Syntax.Markdown: ToPrettyTree {
@@ -87,20 +111,18 @@ extension Syntax.Markdown: ToPrettyTree {
 }
 extension Syntax.Latex.Enclosed: ToPrettyTree {
     var prettyTree: PrettyTree {
-        let enclosed = PrettyTree(name: "Enclosed", children: [
-            self.open.prettyTree,
-            PrettyTree.fragment(self.content.map {$0.prettyTree}),
-            self.close.prettyTree,
-        ])
-//        return PrettyTree.refragment(list: enclosed.defragment())
-        return enclosed
+        let open = self.open.subsequence
+        let close = self.close.subsequence
+        return PrettyTree.init(name: "\(open)\(close)", children: self.content.map {$0.prettyTree})
     }
 }
 extension Syntax.Latex.Cmd: ToPrettyTree {
     var prettyTree: PrettyTree {
-        PrettyTree(name: "\\\(ident.subsequence) ﹕ Cmd", children: [
-            PrettyTree(name: "arguments", children: self.arguments.map { $0.prettyTree })
-        ])
+        let header = "\\\(ident.subsequence) ﹕ Cmd"
+        if self.arguments.isEmpty {
+            return PrettyTree(header)
+        }
+        return PrettyTree(name: header, children: self.arguments.flatMap { $0.prettyTree.defragment() })
     }
 }
 extension Syntax.Latex.Environment.Begin: ToPrettyTree {
@@ -115,20 +137,20 @@ extension Syntax.Latex.Environment.End: ToPrettyTree {
 }
 extension Syntax.Latex.Environment: ToPrettyTree {
     var prettyTree: PrettyTree {
-        let environment = PrettyTree(name: "\\\(name) ﹕ Environment", children: [
-            self.begin.prettyTree,
-            .fragment(self.content.map { $0.prettyTree }),
-            self.end.prettyTree,
-        ])
-//        return PrettyTree.refragment(list: environment.defragment())
-        return environment
+        return PrettyTree.fragment([
+            [self.begin.prettyTree],
+            self.content.map { $0.prettyTree },
+            [self.end.prettyTree]
+        ].flatMap({$0}))
     }
 }
 extension Syntax.Latex: ToPrettyTree {
     var prettyTree: PrettyTree {
         switch self {
+        case .plainText(let x): return PrettyTree(x.subsequence.debugDescription)
         case .cmd(let x): return x.prettyTree
         case .environment(let x): return x.prettyTree
+        case .enclosed(let x): return x.prettyTree
         }
     }
 }

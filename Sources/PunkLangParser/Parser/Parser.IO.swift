@@ -12,7 +12,7 @@ extension Parser {
     public struct IO<A> {
         internal let binder: (Parser.Text) -> Parser.State<A>
     }
-    /// Some `Tex` value wrapped in the 'IO' monad.
+    /// Some `Text` value wrapped in the 'IO' monad.
     public typealias TextIO = IO<Parser.Text>
 }
 
@@ -82,6 +82,13 @@ extension Parser.IO {
             }
             return Parser.State(value: nil, stream: input.stream)
         }
+    }
+    /// Chain together muliple parsers.
+    public func and<B, C>(
+        _ f: @autoclosure @escaping () -> Parser.IO<B>,
+        _ g: @autoclosure @escaping () -> Parser.IO<C>
+    ) -> Parser.IO<(A, B, C)> {
+        self.and(f()).and(g()).map({($0.0.0, $0.0.1, $0.1)})
     }
     /// Chain together muliple parsers.
     public func andTry<B>(_ f: @autoclosure @escaping () -> Parser.IO<B>) -> Parser.IO<(A, B?)> {

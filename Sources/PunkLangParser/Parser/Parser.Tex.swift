@@ -12,6 +12,7 @@ extension Parser {
         let span: Span
         let subsequence: String.SubSequence
     }
+    public typealias Token = Parser.Text
 }
 
 extension Parser.Text {

@@ -33,7 +33,6 @@ extension Parser {
                 }
             }
             return .ok(value: xs, stream: stream)
-//            fatalError("TODO - WHAT TO DO HERE?")
         }
     }
     public static func many<A>(
@@ -130,6 +129,31 @@ extension Parser {
     public static func untilEndOfLine<A>(do parser: @autoclosure @escaping () -> Parser.IO<A>) -> Parser.IO<[A]> {
         Parser.some(parser(), until: Parser.TextIO.token("\n"))
     }
+    public static func enclosedBetween<A, B, C>(
+        start: @autoclosure @escaping () -> Parser.IO<A>,
+        content: @autoclosure @escaping () -> Parser.IO<B>,
+        end: @autoclosure @escaping () -> Parser.IO<C>
+    ) -> Parser.IO<(A, [B], C)> {
+        return start()
+            .then { start in
+                Parser.many(content(), until: end()).and(end()).map {content, end in (start, content, end)}
+            }
+    }
+}
+
+extension Parser.IO {
+    public func allowTrailingSpace() -> Self {
+        Parser.allowTrailingSpace(self)
+    }
+    public func allowLeadingSpace() -> Self {
+        Parser.allowLeadingSpace(self)
+    }
+    public func allowSpace() -> Self {
+        Parser.allowSpace(self)
+    }
+    public func allowAnyWhitespace() -> Self {
+        Parser.allowAnyWhiteSpace(self)
+    }
 }
 
 extension Parser.TextIO {
@@ -153,19 +177,15 @@ extension Parser.TextIO {
             return .init(value: token, stream: rest)
         }
     }
-}
-
-extension Parser.IO {
-    public func allowTrailingSpace() -> Self {
-        Parser.allowTrailingSpace(self)
+    public static var head: Parser.TextIO {
+        Parser.TextIO { input in
+            guard let (char, rest) = input.advance(by: 1) else {
+                return .err(stream: input)
+            }
+            return .ok(value: char, stream: rest)
+        }
     }
-    public func allowLeadingSpace() -> Self {
-        Parser.allowLeadingSpace(self)
-    }
-    public func allowSpace() -> Self {
-        Parser.allowSpace(self)
-    }
-    public func allowAnyWhitespace() -> Self {
-        Parser.allowAnyWhiteSpace(self)
+    public static var number: Parser.TextIO {
+        Parser.TextIO.collect(whileTrue: {$0.isNumber})
     }
 }

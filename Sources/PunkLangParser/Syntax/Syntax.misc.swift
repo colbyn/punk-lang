@@ -9,6 +9,6 @@ import Foundation
 
 extension Syntax {
     enum Environment {
-        case `default`, inline, latex
+        case `default`, inline
     }
 }

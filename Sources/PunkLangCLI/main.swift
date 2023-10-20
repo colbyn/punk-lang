@@ -9,6 +9,6 @@
 import PunkLangParser
 import PunkLang
 
-print("Hello World! - main")
+//print("Hello World! - main")
 //PunkLang.main()
 PunkLangParser.main()

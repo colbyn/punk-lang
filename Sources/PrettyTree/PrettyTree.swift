@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import OrderedCollections
 
 
 public enum PrettyTree {
@@ -21,10 +20,6 @@ public enum PrettyTree {
     public struct KeyValue {
         public let name: String
         public let value: PrettyTree
-    }
-    public struct Map {
-        public let name: String
-        public let children: OrderedDictionary<String, PrettyTree>
     }
 }
 
