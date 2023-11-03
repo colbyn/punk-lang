@@ -24,11 +24,5 @@ extension String {
         }
         return self.removeFirst()
     }
-    func join(with other: String) -> String {
-        return "\(self)\(other)"
-    }
-    func join(with other: Character) -> String {
-        return "\(self)\(other)"
-    }
 }
 

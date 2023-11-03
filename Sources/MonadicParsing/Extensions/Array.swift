@@ -29,8 +29,4 @@ extension Array {
         }
         return nil
     }
-    mutating func safePopFirst() -> Element? {
-        if self.isEmpty { return nil }
-        return self.removeFirst()
-    }
 }

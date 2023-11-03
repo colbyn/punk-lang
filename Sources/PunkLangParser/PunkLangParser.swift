@@ -9,129 +9,77 @@ import Foundation
 import PrettyTree
 
 fileprivate let sourceCode1: String = """
-<layout col="2 1">
-    <note>
-        # Hello World!
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec tristique, nisi
-        et imperdiet commodo, lectus urna ultricies sapien, non facilisis eros mauris.
-    </note>
-    <note>
-        # Hello World!
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec tristique, nisi
-        et imperdiet commodo, lectus urna ultricies sapien, non facilisis eros mauris.
-        $$\\frac{x}{y}$$
-        $$
-        \\begin{equation}
-        z &= \\frac{x}{y}
-        \\end{equation}
-        $$
-    </note>
-</layout>
+\\h1{Hello World}
+\\layout{
+    \\note{
+        \\h2{Hello World}
+        Cake marzipan muffin halvah cotton candy shortbread wafer.
+    }
+    \\note{
+        \\h2{Hello World}
+        Cake marzipan muffin halvah cotton candy shortbread wafer. Sweet roll halvah muffin sweet roll brownie jujubes cheesecake. Topping icing cheesecake soufflé bear claw tiramisu pie jelly beans…
+        \\equations{
+            f(x)=y = e^x
+        } {
+            f(x)=y = e^x
+        } {
+            \\frac{dy}{dx} &= f(x)
+        }
+    }
+    \\note {
+        \\h3{Symmetric Equation of a Line}
+        Given
+        \\equations{
+            t &= \\frac{x - x_1}{x_2-x_1} = \\frac{x - x_1}{\\Delta_x}
+        } {
+            t &= \\frac{y - y_1}{y_2-y_1} = \\frac{y - y_1}{\\Delta_y}
+        } {
+            t &= \\frac{z - z_1}{z_2-z_1} = \\frac{z - z_1}{\\Delta_z}
+        }
+        Therefore
+        \\equations{
+            \\frac{x - x_1}{Delta_x} &= \\frac{y - y_1}{\\Delta_y} = \\frac{z - z_1}{\\Delta_z}
+        } {
+            \\frac{x - x_1}{x_2-x_1} &= \\frac{y - y_1}{y_2-y_1} =  \\frac{z - z_1}{z_2-z_1}
+        }
+        \\hr
+        \\h4{Rationale}
+        We rewrite \\{r = r_0 + a = r_0 + t v} in terms of \\{t}.
+        That is
+        \\equations{
+            x &= x_1 + t(x_2-x_1) = x_1 + t\\;Delta_x
+        } {
+            t\\;Delta_x  &= x - x_1 = t(x_2-x_1)
+        } {
+            t &= \\frac{x - x_1}{x_2-x_1} = \\frac{x - x_1}{Delta_x}
+        } {
+            y &= y_1 + t(y_2-y_1) = y_1 + t\\;\\Delta_y
+        } {
+            t\\;\\Delta_y  &= y - y_1 = t(y_2-y_1)
+        } {
+            t &= \\frac{y - y_1}{y_2-y_1} = \\frac{y - y_1}{\\Delta_y}
+        } {
+            z &= z_1 + t(z_2-z_1) = z_1 + t\\;\\Delta_z
+        } {
+            t\\;\\Delta_z &= z - z_1 = t(z_2-z_1)
+        } {
+            t &= \\frac{z - z_1}{z_2-z_1} = \\frac{z - z_1}{\\Delta_z}
+        }
+    }
+}
 """
 fileprivate let sourceCode2: String = """
-\\begin{equation}
-z &= \\frac{x}{y}
-\\end{equation}
+\\h1{{\\em{Hello} \\b{World}}}
+"""
+fileprivate let sourceCode3: String = """
+\\h1{{Hello}}
 """
 
 
 fileprivate func dev() {
-    let parser = Syntax.parser(environment: .default)
-    let output = Parser.execute(parser: parser, source: sourceCode1)
-    print("DONE")
-    if let value = output.value {
-        print("Success")
-        value.prettyTree.print()
-    } else {
-        print("Failed to parse source code")
-    }
-    print("UNPARSED")
-    print(output.stream.subsequence.debugDescription)
-//    Dev.main()
-//    Latex.main()
-    
-//    let prettyTree1 = PrettyTree(name: "Alpha", children: [
-//        .init(name: "Section 1", children: [
-//            .init("One"),
-//            .init("Two"),
-//            .init("Three"),
-//        ]),
-//        .init(name: "Section 2", children: [
-//            .init("One"),
-//            .init("Two"),
-//            .init("Three"),
-//        ]),
-//        .init(name: "Section 3", children: [
-//            .init("One"),
-//            .init("Two"),
-//            .init("Three"),
-//        ]),
-//        .init(name: "Section 4", children: [
-//            .init(name: "Alpha", children: [
-//                .init(name: "Beta", children: [
-//                    .init(name: "Gamma", children: [
-//                        .init("Delta")
-//                    ])
-//                ])
-//            ]),
-//            .init(name: "Alpha", children: [
-//                .init(name: "Beta", children: [
-//                    .init(name: "Gamma", children: [
-//                        .init("Delta")
-//                    ])
-//                ])
-//            ]),
-//        ]),
-//        .init(name: "Section 5", children: [
-//            .init(name: "Alpha", children: [
-//                .init(name: "Beta", children: [
-//                    .init(name: "Gamma", children: [
-//                        .init("Delta")
-//                    ])
-//                ])
-//            ]),
-//            .init(name: "Alpha", children: [
-//                .init(name: "Beta", children: [
-//                    .init(name: "Gamma", children: [
-//                        .init("Delta")
-//                    ])
-//                ])
-//            ]),
-//        ]),
-//    ])
-//    prettyTree1.print()
-//    let parser = Syntax.Element.StartTag.parser
-//    let output = Parser.execute(parser: parser, source: sourceCode)
-//    if let value = output.value {
-//        print("Parsed", value)
-//    }
-//    if let (left, right) = s1.splitAt(whereTrue: {$0.isWhitespace}) {
-//        print("left", left.subsequence.debugDescription)
-//        print("right", right.subsequence.debugDescription)
-//    }
-    
-    
-//    var (begin, text) = Parser.Tex(string: sourceCode).splitPrefix(string: "<")!
-//    var counter = 0
-//    while let (current, next) = text.advance(by: 1) {
-////        let value = current.subsequence
-//        let match = sourceCode[current.span.start.localIndex...sourceCode.index(before: current.span.end.localIndex)]
-//        print("current", current.subsequence.debugDescription, " <=> ", next.subsequence.debugDescription)
-////        if counter > 10 { break }
-//        counter += 1
-//        text = next
-//    }
-//    print("TEXT", text)
-//    var subtext = sourceText
-//    var counter = 0
-//    while let newSubtext = subtext.advance() {
-//        print("subtext", newSubtext.subsequence.debugDescription)
-//        counter += 1
-//        if counter > 10 {
-//            break
-//        }
-//        subtext = newSubtext
-//    }
+    let tokens = Syntax.Token.tokenize(source: sourceCode3)
+    PrettyTree(fragment: tokens).print()
+    let _ = Syntax.TT.build(tokens: tokens)
 }
 
 public struct PunkLangParser {

@@ -27,13 +27,20 @@ public protocol ToPrettyTree {
     var prettyTree: PrettyTree {get}
 }
 
+extension Array: ToPrettyTree where Element: ToPrettyTree {
+    public var prettyTree: PrettyTree {
+        if self.isEmpty {
+            return PrettyTree("Array([])")
+        } else {
+            return PrettyTree(name: "Array", children: self.map({$0.prettyTree}))
+        }
+    }
+}
+
 extension PrettyTree {
-//    public init(name: String, children: OrderedDictionary<String, PrettyTree>) {
-//        let children = children.map { child in
-//            return "\(child.key): \()"
-//        }
-//        self = .branch(.init(name: name, children: children))
-//    }
+    public init<Element>(fragment elements: [Element]) where Element: ToPrettyTree {
+        self = .fragment(elements.map({$0.prettyTree}))
+    }
     public init(name: String, children: [PrettyTree]) {
         self = .branch(.init(name: name, children: children))
     }
