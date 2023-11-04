@@ -72,14 +72,13 @@ fileprivate let sourceCode2: String = """
 \\h1{{\\em{Hello} \\b{World}}}
 """
 fileprivate let sourceCode3: String = """
-\\h1{{Hello}}
+\\h1{{Hello World}}
 """
 
 
 fileprivate func dev() {
-    let tokens = Syntax.Token.tokenize(source: sourceCode3)
-    PrettyTree(fragment: tokens).print()
-    let _ = Syntax.TT.build(tokens: tokens)
+    let tokens = Syntax.TokenValue.tokenize(source: sourceCode2)
+    let _ = Syntax.TokenTree.build(tokens: tokens)
 }
 
 public struct PunkLangParser {

@@ -1,42 +1,35 @@
-//
-//  File.swift
-//  
-//
-//  Created by Colbyn Wadman on 11/3/23.
-//
-
 import Foundation
 import PrettyTree
 
 extension Syntax {
-    enum Token {
-        case char(Character)
-        case string(String)
-        case ident(String)
-        case open
-        case close
+    enum TokenValue {
+        case char(CharToken)
+        case string(StringToken)
+        case ident(StringToken)
+        case open(CharToken)
+        case close(CharToken)
     }
 }
 
-// MARK: - PARSER -
-extension Syntax.Token {
-    init(char: Character) {
+extension Syntax.TokenValue {
+    init(char: Character, location: Int) {
         switch char {
         case "{":
-            self = .open
+            self = .open(.init(value: char, range: NSRange(location: location, length: 1)))
         case "}":
-            self = .close
+            self = .close(.init(value: char, range: NSRange(location: location, length: 1)))
         case "\\":
-            self = .ident("\\")
+            self = .ident(.init(value: String(char), range: NSRange(location: location, length: 1)))
         default:
-            self = .char(char)
+            self = .char(.init(value: char, range: NSRange(location: location, length: 1)))
         }
     }
     static func tokenize(source: String) -> [Self] {
         var leading: [Self] = []
         var trailing = source
+        var cursor: Int = 0
         while case .some(let next) = trailing.safePopFirstChar() {
-            let next = Self(char: next)
+            let next = Self(char: next, location: cursor)
             switch leading.popLast().map({$0.join(other: next)}) {
             case .some((let left, .some(let right))):
                 leading.append(left)
@@ -46,6 +39,7 @@ extension Syntax.Token {
             case .none:
                 leading.append(next)
             }
+            cursor += 1
         }
         return leading
     }
@@ -54,7 +48,7 @@ extension Syntax.Token {
         case .char(let char1):
             switch other {
             case .char(let char2):
-                return (.string("\(char1)\(char2)"), nil)
+                return (.string(char1.join(other: char2)), nil)
             case .string:
                 return (self, other)
             case .ident:
@@ -67,9 +61,9 @@ extension Syntax.Token {
         case .string(let string1):
             switch other {
             case .char(let char2):
-                return (.string(string1.join(with: char2)), nil)
+                return (.string(string1.push(other: char2)), nil)
             case .string(let string2):
-                return (.string(string1.join(with: string2)), nil)
+                return (.string(string1.join(other: string2)), nil)
             case .ident:
                 return (self, other)
             case .open:
@@ -80,11 +74,11 @@ extension Syntax.Token {
         case .ident(let string1):
             switch other {
             case .char(let char2):
-                return (.ident(string1.join(with: char2)), nil)
+                return (.ident(string1.push(other: char2)), nil)
             case .string:
                 return (self, other)
             case .ident(let string2):
-                return (.ident(string1.join(with: string2)), nil)
+                return (.ident(string1.join(other: string2)), nil)
             case .open:
                 return (self, other)
             case .close:
@@ -121,19 +115,19 @@ extension Syntax.Token {
 }
 
 // MARK: - DEBUG -
-extension Syntax.Token: ToPrettyTree {
+extension Syntax.TokenValue: ToPrettyTree {
     var prettyTree: PrettyTree {
         switch self {
-        case .string(let string):
-            return PrettyTree(".string(\(string.debugDescription))")
-        case .ident(let string):
-            return PrettyTree(".ident(\(string.debugDescription))")
-        case .open:
-            return PrettyTree(".open")
-        case .close:
-            return PrettyTree(".close")
-        case .char(let char):
-            return PrettyTree(".char('\(char)')")
+        case .char(let region):
+            return PrettyTree(".char(\(region.value.debugDescription))")
+        case .ident(let region):
+            return PrettyTree(".ident(\(region.value.debugDescription))")
+        case .string(let region):
+            return PrettyTree(".string(\(region.value.debugDescription))")
+        case .open(let region):
+            return PrettyTree(".open(\(region.value.debugDescription))")
+        case .close(let region):
+            return PrettyTree(".close(\(region.value.debugDescription))")
         }
     }
 }
