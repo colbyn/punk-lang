@@ -58,7 +58,6 @@ fileprivate extension Array<Syntax> {
         var leading: [Syntax] = []
         var trailing = self.map { $0.normalize() }
         loop: while case .some(let value) = trailing.safePopFirst() {
-            // MARK: PART 1
             if var cmd = value.asCmd {
                 let rightward = trailing
                     .consume(satisfy: {$0.isEnclosure || $0.isWhitespace})
