@@ -31,7 +31,6 @@ extension Syntax.Cmd {
 }
 extension Syntax.Enclosure {
     func normalize() -> Self {
-//        print("HERE")
         let body = self.body.normalize()
         return Self(open: open, body: body, close: close)
     }
