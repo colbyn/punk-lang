@@ -8,26 +8,26 @@
 import Foundation
 import PrettyTree
 
-extension Syntax {
-    enum TokenTree {
-        case token(Syntax.TokenValue)
+extension Parser {
+    enum BlockTree {
+        case token(Parser.TokenValue)
         case open(Open)
         case closed(Closed)
-        case fragment(ArrayRef<TokenTree>)
+        case fragment(ArrayRef<BlockTree>)
         struct Open {
-            let open: Syntax.CharToken
-            let body: ArrayRef<TokenTree>
+            let open: Parser.CharToken
+            let body: ArrayRef<BlockTree>
         }
         struct Closed {
-            let open: Syntax.CharToken
-            let body: ArrayRef<TokenTree>
-            let close: Syntax.CharToken
+            let open: Parser.CharToken
+            let body: ArrayRef<BlockTree>
+            let close: Parser.CharToken
         }
     }
 }
 
-extension Syntax.TokenTree {
-    var active: Syntax.TokenTree.Open? {
+extension Parser.BlockTree {
+    var active: Parser.BlockTree.Open? {
         switch self {
         case .token: return nil
         case .open(let open): return open.body.last?.active ?? open
@@ -36,7 +36,7 @@ extension Syntax.TokenTree {
         }
     }
     var hasActiveSite: Bool { self.active.isSome }
-    mutating func closeActiveSite(end: Syntax.CharToken) -> Bool {
+    mutating func closeActiveSite(end: Parser.CharToken) -> Bool {
         switch self {
         case .token:
             return false
@@ -70,7 +70,7 @@ extension Syntax.TokenTree {
             return false
         }
     }
-    mutating func topLevelPush(tree: Syntax.TokenTree) {
+    mutating func topLevelPush(tree: Parser.BlockTree) {
         switch self {
         case .token(let token):
             self = .fragment(.init(from: [.token(token), tree]))
@@ -83,8 +83,8 @@ extension Syntax.TokenTree {
             self = .fragment(arrayRef)
         }
     }
-    static func build(tokens: [Syntax.TokenValue]) {
-        var leading: Syntax.TokenTree = Syntax.TokenTree.fragment(.init())
+    static func build(tokens: [Parser.TokenValue]) -> Parser.BlockTree {
+        var leading: Parser.BlockTree = Parser.BlockTree.fragment(.init())
         var trailing = tokens
         loop: while case .some(let token) = trailing.safePopFirst() {
             switch token {
@@ -107,7 +107,7 @@ extension Syntax.TokenTree {
                     leading.topLevelPush(tree: .token(token))
                 }
             case .open(let start):
-                let node = Syntax.TokenTree.open(.init(open: start, body: .init()))
+                let node = Parser.BlockTree.open(.init(open: start, body: .init()))
                 if let active = leading.active {
                     active.body.append(node)
                 } else {
@@ -119,12 +119,46 @@ extension Syntax.TokenTree {
                 }
             }
         }
-        leading.prettyTree.print()
+        return leading
+    }
+}
+
+// MARK: - CONVERT -
+extension Parser.BlockTree {
+    var asSyntaxTree: Syntax {
+        switch self {
+        case .token(let tokenValue):
+            switch tokenValue {
+            case .char(let charToken):
+                return Syntax.string(charToken.asStringRegion)
+            case .string(let stringToken):
+                return Syntax.string(stringToken)
+            case .ident(let stringToken):
+                return Syntax.cmd(.init(ident: stringToken, arguments: []))
+            case .open(let charToken):
+                return Syntax.invalid(.unclosedBlock(.init(open: charToken, body: [])))
+            case .close(let charToken):
+                return Syntax.invalid(.closeToken(charToken))
+            }
+        case .open(let open):
+            return Syntax.invalid(.unclosedBlock(.init(
+                open: open.open,
+                body: open.body.elements.map({$0.asSyntaxTree})
+            )))
+        case .closed(let closed):
+            return Syntax.enclosure(.init(
+                open: closed.open,
+                body: closed.body.elements.map({$0.asSyntaxTree}),
+                close: closed.close
+            ))
+        case .fragment(let array):
+            return Syntax.fragment(array.elements.map({$0.asSyntaxTree}))
+        }
     }
 }
 
 // MARK: - DEBUG -
-extension Syntax.TokenTree: ToPrettyTree {
+extension Parser.BlockTree: ToPrettyTree {
     var prettyTree: PrettyTree {
         switch self {
         case .token(let tokenValue):

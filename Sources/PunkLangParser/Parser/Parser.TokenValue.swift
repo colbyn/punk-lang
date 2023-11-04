@@ -1,7 +1,7 @@
 import Foundation
 import PrettyTree
 
-extension Syntax {
+extension Parser {
     enum TokenValue {
         case char(CharToken)
         case string(StringToken)
@@ -11,7 +11,7 @@ extension Syntax {
     }
 }
 
-extension Syntax.TokenValue {
+extension Parser.TokenValue {
     init(char: Character, location: Int) {
         switch char {
         case "{":
@@ -115,7 +115,7 @@ extension Syntax.TokenValue {
 }
 
 // MARK: - DEBUG -
-extension Syntax.TokenValue: ToPrettyTree {
+extension Parser.TokenValue: ToPrettyTree {
     var prettyTree: PrettyTree {
         switch self {
         case .char(let region):

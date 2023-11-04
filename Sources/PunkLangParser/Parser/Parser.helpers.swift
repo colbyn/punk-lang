@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Syntax {
+extension Parser {
     typealias CharToken = Region<Character>
     typealias StringToken = Region<String>
     struct Position {
@@ -19,7 +19,7 @@ extension Syntax {
     }
 }
 
-extension Syntax.Region where Value == String {
+extension Parser.Region where Value == String {
     func join(other: Self) -> Self {
         Self(
             value: "\(self.value)\(other.value)",
@@ -27,17 +27,20 @@ extension Syntax.Region where Value == String {
         )
     }
 }
-extension Syntax.Region where Value == Character {
-    func join(other: Self) -> Syntax.Region<String> {
-        Syntax.Region<String>(
+extension Parser.Region where Value == Character {
+    func join(other: Self) -> Parser.Region<String> {
+        Parser.Region<String>(
             value: "\(self.value)\(other.value)",
             range: NSRange(location: self.range.location, length: self.range.length + other.range.length)
         )
     }
+    var asStringRegion: Parser.Region<String> {
+        Parser.Region<String>(value: String(self.value), range: self.range)
+    }
 }
-extension Syntax.Region where Value == String {
-    func push(other: Syntax.Region<Character>) -> Syntax.Region<String> {
-        Syntax.Region<String>(
+extension Parser.Region where Value == String {
+    func push(other: Parser.Region<Character>) -> Parser.Region<String> {
+        Parser.Region<String>(
             value: "\(self.value)\(other.value)",
             range: NSRange(location: self.range.location, length: self.range.length + other.range.length)
         )

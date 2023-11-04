@@ -77,8 +77,10 @@ fileprivate let sourceCode3: String = """
 
 
 fileprivate func dev() {
-    let tokens = Syntax.TokenValue.tokenize(source: sourceCode2)
-    let _ = Syntax.TokenTree.build(tokens: tokens)
+    let tokens = Parser.TokenValue.tokenize(source: sourceCode2)
+    let blockTree = Parser.BlockTree.build(tokens: tokens)
+    let ast = blockTree.asSyntaxTree.normalize()
+    ast.prettyTree.print()
 }
 
 public struct PunkLangParser {
